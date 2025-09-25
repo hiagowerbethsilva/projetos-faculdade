@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cafeteria - Painel de Pedidos</title>
+  <style>
+    :root{
+      --bg:#f7f7fb;
+      --card:#ffffff;
+      --accent:#6b46c1;
+      --muted:#6b7280;
+      --success:#10b981;
+      --danger:#ef4444;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#eef2ff);min-height:100vh;color:#111}
+
+    header{background:var(--card);padding:20px 24px;display:flex;gap:16px;align-items:center;box-shadow:0 6px 18px rgba(99,102,241,0.06)}
+    header h1{margin:0;font-size:18px;color:var(--accent)}
+    header p{margin:0;color:var(--muted);font-size:13px}
+
+    .container{max-width:1100px;margin:28px auto;padding:0 20px}
+
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:20px}
+
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 20px rgba(12,13,24,0.04)}
+
+    /* Form */
+    form .field{display:flex;flex-direction:column;margin-bottom:12px}
+    label{font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=number], select{padding:10px;border-radius:8px;border:1px solid #e6e9f2;font-size:14px}
+    .row{display:flex;gap:10px}
+    button{background:var(--accent);color:white;border:0;padding:10px 12px;border-radius:10px;cursor:pointer}
+    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(107,70,193,0.12)}
+
+    /* Lista */
+    .list{display:flex;flex-direction:column;gap:10px}
+    .pedido{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;border:1px solid #f1f3f8}
+    .meta{display:flex;align-items:center;gap:12px}
+    .badge{padding:6px 8px;border-radius:8px;font-size:12px}
+    .badge.p{background:#fff7ed;color:#92400e;border:1px solid #ffedd5}
+    .badge.r{background:#ecfeff;color:#065f46;border:1px solid #bbf7d0}
+
+    .actions button{margin-left:8px;padding:6px 8px;border-radius:8px;font-size:13px}
+    .actions .edit{background:#f3f4f6;border:1px solid #e6e9f2}
+    .actions .delete{background:var(--danger);color:white;border:0}
+
+    /* responsivo */
+    @media (max-width:880px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    footer{max-width:1100px;margin:12px auto;padding:0 20px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Cafeteria • Painel de Pedidos</h1>
+      <p>Frontend simples para testar a API REST (GET, POST, PUT, DELETE)</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <section class="card">
+        <h3 style="margin-top:0">Criar / Editar Pedido</h3>
+        <form id="form-pedido">
+          <input type="hidden" id="pedido-id" />
+
+          <div class="field">
+            <label for="descricao">Descrição</label>
+            <input id="descricao" type="text" placeholder="Ex: 1 expresso" required />
+          </div>
+
+          <div class="field">
+            <label for="valor">Valor (em reais)</label>
+            <input id="valor" type="number" step="0.01" placeholder="9.90" required />
+          </div>
+
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="P">P (Pendente)</option>
+              <option value="R">R (Recebido)</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button type="submit">Salvar</button>
+            <button type="button" class="secondary" id="btn-reset">Limpar</button>
+          </div>
+        </form>
+
+        <hr style="margin:16px 0" />
+        <div>
+          <strong>Conexão</strong>
+          <p style="margin:6px 0;color:var(--muted);font-size:13px">API base: <code id="api-base">/pedidos</code></p>
+        </div>
+      </section>
+
+      <section>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="margin:0">Pedidos</h3>
+            <div>
+              <button id="btn-refresh" class="secondary">Atualizar</button>
+            </div>
+          </div>
+
+          <div id="lista" class="list"></div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="card">
+          <h4 style="margin:0 0 8px 0">Informações</h4>
+          <p style="margin:0;color:var(--muted);font-size:13px">Use este painel para testar sua API em memória. O frontend envia requisições para os endpoints:</p>
+          <ul style="color:var(--muted)">
+            <li><code>GET /pedidos</code> — listar</li>
+            <li><code>POST /pedidos</code> — criar</li>
+            <li><code>GET /pedidos/{id}</code> — buscar por id</li>
+            <li><code>PUT /pedidos/{id}</code> — atualizar</li>
+            <li><code>DELETE /pedidos/{id}</code> — remover</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    Quadra de teste • Se a API estiver em outro host, atualize a variável `API_BASE_URL` no script.
+  </footer>
+
+  <script>
+    // Ajuste aqui se a API estiver em outro host/porta (ex: 'http://localhost:8080/pedidos')
+    const API_BASE_URL = '/pedidos';
+
+    const listaEl = document.getElementById('lista');
+    const form = document.getElementById('form-pedido');
+    const descricaoEl = document.getElementById('descricao');
+    const valorEl = document.getElementById('valor');
+    const statusEl = document.getElementById('status');
+    const pedidoIdEl = document.getElementById('pedido-id');
+    const btnReset = document.getElementById('btn-reset');
+    const btnRefresh = document.getElementById('btn-refresh');
+    const apiBaseEl = document.getElementById('api-base');
+
+    apiBaseEl.textContent = API_BASE_URL;
+
+    async function fetchPedidos(){
+      listaEl.innerHTML = '<em>Carregando...</em>';
+      try{
+        const res = await fetch(API_BASE_URL);
+        if(!res.ok) throw new Error('Erro: ' + res.status);
+        const pedidos = await res.json();
+        renderLista(pedidos);
+      }catch(err){
+        listaEl.innerHTML = '<div style="color:#b91c1c">Não foi possível carregar os pedidos.</div>';
+        console.error(err);
+      }
+    }
+
+    function renderLista(pedidos){
+      if(!pedidos || pedidos.length === 0){
+        listaEl.innerHTML = '<div style="color:var(--muted)">Nenhum pedido encontrado.</div>';
+        return;
+      }
+
+      listaEl.innerHTML = '';
+      pedidos.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'pedido';
+
+        // meta
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `
+          <div>
+            <strong>#${p.id}</strong>
+            <div style="font-size:14px">${escapeHtml(p.descricao)}</div>
+            <div style="font-size:13px;color:var(--muted)">R$ ${Number(p.valor).toFixed(2)}</div>
+          </div>
+        `;
+
+        const badge = document.createElement('div');
+        badge.className = 'badge ' + (p.status ? p.status.toLowerCase() : '');
+        badge.textContent = p.status || '';
+
+        const left = document.createElement('div');
+        left.style.display = 'flex';
+        left.style.alignItems = 'center';
+        left.style.gap = '12px';
+        left.appendChild(meta);
+        left.appendChild(badge);
+
+        // actions
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const btnEdit = document.createElement('button');
+        btnEdit.className = 'edit';
+        btnEdit.textContent = 'Editar';
+        btnEdit.onclick = () => loadForEdit(p.id);
+
+        const btnDelete = document.createElement('button');
+        btnDelete.className = 'delete';
+        btnDelete.textContent = 'Excluir';
+        btnDelete.onclick = () => remover(p.id);
+
+        actions.appendChild(btnEdit);
+        actions.appendChild(btnDelete);
+
+        item.appendChild(left);
+        item.appendChild(actions);
+
+        listaEl.appendChild(item);
+      });
+    }
+
+    async function criar(payload){
+      const res = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('Erro ao criar: ' + res.status);
+      return res.json();
+    }
+
+    async function atualizar(id, payload){
+      const res = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('Erro ao atualizar: ' + res.status);
+      return res.json();
+    }
+
+    async function remover(id){
+      if(!confirm('Remover pedido #' + id + '?')) return;
+      try{
+        const res = await fetch(`${API_BASE_URL}/${id}`, {method: 'DELETE'});
+        if(res.status === 204){
+          fetchPedidos();
+        } else {
+          alert('Erro ao excluir: ' + res.status);
+        }
+      }catch(err){
+        console.error(err);
+        alert('Erro ao excluir. Veja o console.');
+      }
+    }
+
+    async function loadForEdit(id){
+      try{
+        const res = await fetch(`${API_BASE_URL}/${id}`);
+        if(!res.ok) throw new Error('Não encontrado');
+        const p = await res.json();
+        pedidoIdEl.value = p.id;
+        descricaoEl.value = p.descricao;
+        valorEl.value = Number(p.valor);
+        statusEl.value = p.status;
+        window.scrollTo({top:0,behavior:'smooth'});
+      }catch(err){
+        alert('Não foi possível carregar o pedido.');
+        console.error(err);
+      }
+    }
+
+    function resetForm(){
+      pedidoIdEl.value = '';
+      descricaoEl.value = '';
+      valorEl.value = '';
+      statusEl.value = 'R';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        descricao: descricaoEl.value.trim(),
+        valor: parseFloat(valorEl.value),
+        status: statusEl.value
+      };
+
+      const id = pedidoIdEl.value;
+      try{
+        if(id){
+          await atualizar(id, {...payload, id: Number(id)});
+        } else {
+          await criar(payload);
+        }
+        resetForm();
+        fetchPedidos();
+      }catch(err){
+        console.error(err);
+        alert('Erro ao salvar. Veja o console.');
+      }
+    });
+
+    btnReset.addEventListener('click', resetForm);
+    btnRefresh.addEventListener('click', fetchPedidos);
+
+    // pequeno util
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    // inicializa
+    fetchPedidos();
+  </script>
+</body>
+</html>
